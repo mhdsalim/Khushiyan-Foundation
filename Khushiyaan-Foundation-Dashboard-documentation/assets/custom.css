@@ -1,0 +1,18 @@
+/* Desktop: default legend position */
+.graph-figure .legend {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start; 
+    position: relative;
+    bottom: 0;
+    flex-wrap: wrap;
+}
+
+/* Mobile: screen width < 768px */
+@media screen and (max-width: 768px) {
+    .graph-figure .legend {
+        justify-content: center;
+        bottom: 0;
+        flex-wrap: wrap;
+    }
+}

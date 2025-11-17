@@ -1,0 +1,157 @@
+
+/* Default for desktop/laptop */
+.login-page {
+background-image: url("/assets/beach_cleanup_bg.jpeg");
+background-size: cover;
+background-position: center;
+background-repeat: no-repeat;
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+position: relative;
+}
+/* Add overlay on top of background */
+.login-page::before {
+content: "";
+position: absolute;
+top: 0; left: 0;
+width: 100%; height: 100%;
+background: rgba(0,0,0,0.4); 
+z-index: 0;
+}
+
+/* Make sure login box sits above overlay */
+.login-box {
+position: relative;
+z-index: 1;
+background: rgba(255,255,255,0.85);
+padding : 2rem;
+border-radius: 12px;
+box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+max-width: 400px;
+width: 90%;
+}
+/* Input fields inside login box */
+.login-box input {
+margin-bottom: 1rem;
+border-radius: 6px;
+border: 1px solid #ccc;
+padding: 0.75rem;
+width: 100%;
+}
+
+/* Login button */
+.login-box button {
+width: 100%;
+padding: 0.75rem;
+border-radius: 6px;
+background-color: #ff5722;  
+color: white;
+border: none;
+font-weight: bold;
+transition: background 0.3s ease;
+}
+
+.login-box button:hover {
+background-color: #e64a19;
+}
+
+/* Mobile only */
+@media (max-width: 768px) {
+.login-page {
+background-image: url("/assets/beach_cleanup_bg.jpeg");
+background-size: cover;
+background-position: center;
+}
+}
+
+/* Footer stats section */
+.footer-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  background: rgba(0,0,0,0.6);  /* semi-transparent dark footer */
+  padding: 30px 20px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  z-index: 1;
+  min-height: 100px;
+}
+
+/* Each stat card */
+.stat-card {
+  text-align: center;
+  color: white;
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: bold;
+  margin: 0;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 16px;
+  margin: 0;
+  color: #fff;
+}
+
+/* Mobile view: stack vertically */
+@media (max-width: 768px) {
+  .footer-stats {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    padding: 20px 15px;
+    min-height: auto;
+  }
+}
+
+/* Login page logo styling */
+.login-logo {
+  height: 60px;
+  transition: all 0.3s ease;
+}
+
+/* Mobile responsiveness for login logo */
+@media (max-width: 768px) {
+  .login-logo {
+    height: 45px;
+    top: 15px !important;
+    left: 15px !important;
+  }
+}
+
+body{
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width:100%;
+}
+/* Social media icons in footer */
+.social-icons a {
+  color: #ffffff;  /* white icons */
+  font-size: 22px;
+  margin: 0 10px;
+  transition: color 0.3s ease;
+}
+
+.social-icons a:hover {
+  color: #1da1f2;  /* Twitter blue on hover (can change per brand) */
+}
+.social-icons a.facebook:hover {
+  color: #1877f2;  /* Facebook blue */
+}
+
+.social-icons a.twitter:hover {
+  color: #1da1f2;  /* Twitter blue */
+}
+
+.social-icons a.instagram:hover {
+  color: #e1306c;  /* Instagram pink */
+}
