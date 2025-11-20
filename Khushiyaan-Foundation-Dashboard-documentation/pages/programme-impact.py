@@ -14,8 +14,8 @@ from flask_login import current_user, logout_user  # Added Flask-Login imports
 import plotly.io as pio
 from utils.google_sheet import fetch_form_responses,format_pretty_date,update_sheet
 from utils.certificate_generator import generate_certificate
-from utils.mailer import send_certificate_mail
-
+from utils.mailer import send_certificate_mail,create_smtp_client
+import time
 
 # 🎨 Khushiyaan Foundation Brand Palette
 khushiyaan_colors = ["#001F54", "#FFD300", "#808080", "#008080", "#B0B0B0"]
@@ -721,55 +721,126 @@ def layout():
     })
  
 # ---------------- Callbacks ----------------
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import dash
+from dash.dependencies import Input, Output
+
 @dash.callback(
     Output("send-certificates", "children"),
     Input("send-certificates", "n_clicks"),
     prevent_initial_call=True
 )
 def send_all_certificates(n_clicks):
-    if n_clicks > 0:
-        try:
-            df = fetch_form_responses("Khushiyan Foundation (Responses)")
-            total = df.shape[0]
+    if n_clicks <= 0:
+        return "Send Certificates"
 
-            for i, row in df.iterrows():
-                print("Entered Loop")
+    try:
+        start_total = time.perf_counter()
+
+        df = fetch_form_responses("Khushiyan Foundation (Responses)")
+        total = df.shape[0]
+
+        print(f"🔵 Starting parallel processing for {total} certificates…")
+
+        # store successfully processed row numbers for batch updating
+        rows_to_update = []
+        
+        # -------- FUNCTION FOR EACH USER --------
+        def process_user(row,smtp_client):
+            try:
+                user_start = time.perf_counter()
+
                 name = row["Name"]
                 email = row["Email"]
                 event = row["Event"]
-                date_str  = row["Date"]
+                date_str = row["Date"]
                 location = row["Location"]
                 sponsor = row["Sponsor"]
                 photo_path = row["Upload the image of the event"]
+
                 date = format_pretty_date(date_str)
                 cert_path = f"certificates/{name}_certificate.pdf"
-                print("Name:",name)
+
+                # -------- Certificate generation --------
+                t1 = time.perf_counter()
                 generate_certificate(
                     name=name,
                     event_name=event,
                     location=location,
                     date=date,
-                    sponsor=sponsor, 
+                    sponsor=sponsor,
                     template_path="assets/Legrand template.pdf",
                     output_path=cert_path,
-                    photo_path = photo_path
+                    photo_path=photo_path
                 )
+                t2 = time.perf_counter()
+
+                # -------- Email sending --------
                 send_certificate_mail(
+                    smtp_client,
                     receiver_email=email,
                     subject=f"Khushiyaan Foundation - {event} Certificate",
                     body=f"Hello {name},\n\nThank you for participating in the {event} Drive on {date}!\nPlease find your certificate attached.\n\nWarm regards,\nKhushiyaan Foundation",
                     attachments=[cert_path]
                 )
-                update_sheet("Khushiyan Foundation (Responses)",row.index)
-                print(f"✅ Sent to {name} ({email}) [{i+1}/{total}]")
+                t3 = time.perf_counter()
 
+                total_time = time.perf_counter() - user_start
+
+                print(
+                    f"🟢 {name} processed | PDF: {t2 - t1:.2f}s | Email: {t3 - t2:.2f}s | Total: {total_time:.2f}s"
+                )
+
+                return row["sheet_row"]  # send sheet row back
+
+            except Exception as e:
+                print(f"❌ Error for {row['Name']}: {e}")
+                return None
+
+        # -------- PARALLEL EXECUTION --------
+        max_workers = 6  # adjust based on CPU / Gmail limits
+
+        # Create one SMTP client per worker
+        smtp_clients = [create_smtp_client() for _ in range(max_workers)]
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             
+            futures = {}
+            client_index = 0  # round-robin pointer
 
-            return " All Sent!"
-        except Exception as e:
-            print("Error:", e)
-            return "Error Sending"
-    return "Send Certificates"
+            for _, row in df.iterrows():
+                
+                # pick one SMTP client for this job
+                smtp_client = smtp_clients[client_index]
+                client_index = (client_index + 1) % max_workers
+                
+                # submit the job with the client
+                future = executor.submit(process_user, row, smtp_client)
+                futures[future] = row
+
+            # collect results
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    rows_to_update.append(result)
+        # close all smtp clients at end
+        for client in smtp_clients:
+            try:
+                client.quit()
+            except:
+                pass
+        print("Reached here")
+        update_sheet("Khushiyan Foundation (Responses)",rows_to_update)
+        # -------- DONE --------
+        end_total = time.perf_counter()
+        print(f"\n🎉 ALL DONE in {end_total - start_total:.2f}s")
+
+        return "All Sent!"
+
+    except Exception as e:
+        print("Error:", e)
+        return str(e)
 
 @dash.callback(
     Output("sections-container", "children"),

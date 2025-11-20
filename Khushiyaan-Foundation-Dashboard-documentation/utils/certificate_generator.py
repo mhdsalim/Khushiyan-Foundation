@@ -58,7 +58,7 @@ def download_image_from_gdrive(url):
     buffer.seek(0)
     return buffer
 
-def universal_to_jpg(input_data, quality=35, max_width=1300, max_height=1300):
+def universal_to_jpg(input_data, quality=35, max_width=475, max_height=300):
 
     # Input can be path OR a BytesIO buffer
     if isinstance(input_data, io.BytesIO):
@@ -173,7 +173,7 @@ def generate_certificate(
         paragraph_lines = [
             "For participating with enthusiasm at",
             f"{event_text} -",
-            f"a social initiative by and Khushiyaan Foundation at ",
+            f"a social initiative by Khushiyaan Foundation at ",
             line_last
         ]
 
@@ -182,21 +182,21 @@ def generate_certificate(
         x = (PAGE_WIDTH - width) / 2
         c.drawString(x, y, line)
         y -= 28
-    user_photo = ImageReader(user_photo)
+
     # ----- FADED CENTER BACKGROUND IMAGE -----
+    user_photo = ImageReader(user_photo)
     try:
         c.saveState()
         c.setFillAlpha(0.18)  # fade level
     except:
         pass  # safe fallback
-
+    width, height = user_photo.getSize()
     c.drawImage(
         user_photo,
-        60,
+        (PAGE_WIDTH -width)/2,
         210,
         height=300,
-        width=PAGE_WIDTH - 120,
-        preserveAspectRatio=False,
+        preserveAspectRatio=True,
         mask='auto'
     )
 

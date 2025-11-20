@@ -3,6 +3,13 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 from datetime import datetime
 
+# Define the scope of the application
+scope = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+client = gspread.authorize(creds)
 def fetch_form_responses(sheet_name):
     """
     Fetch all form responses from a Google Sheet and return them as a pandas DataFrame.
@@ -10,15 +17,7 @@ def fetch_form_responses(sheet_name):
       - credentials.json file in project root
       - The Google Sheet shared with the service account
     """
-    # Define the scope of the application
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-
-    # Authorize the client
-    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-    client = gspread.authorize(creds)
+    
 
     # Open the sheet by name
     sheet = client.open(sheet_name).sheet1
@@ -26,7 +25,7 @@ def fetch_form_responses(sheet_name):
     # Get all data
     records = sheet.get_all_records()
     df = pd.DataFrame(records)
-
+    df["sheet_row"] = df.index + 2
     if df.empty:
         print("⚠️ Sheet is empty.")
         return df
@@ -41,30 +40,23 @@ def fetch_form_responses(sheet_name):
     if pending_df.empty:
         return pending_df
 
-    # ---- UPDATE SHEET VALUES ----
-    # gspread rows start from 2 (row 1 = header)
-        
-
-    print("✅ Updated pending rows to 'Yes'.")
-
     return pending_df
-def update_sheet(sheet_name,idx):
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-
-    # Authorize the client
-    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-    client = gspread.authorize(creds)
+def update_sheet(sheet_name, rows_to_update):
     sheet = client.open(sheet_name).sheet1
-    records = sheet.get_all_records()
-    df = pd.DataFrame(records)
+    
+    # Hardcode the column index for 'Send_or_not'
     col_name = "Send_or_not"
-    # Open the sheet by name
-    sheet = client.open(sheet_name).sheet1
-    sheet.update_cell(idx + 2, df.columns.get_loc(col_name) + 1, "Yes")
-    return ""
+    col_index = sheet.row_values(1).index(col_name) + 1
+
+    updates = []
+    for row_num in rows_to_update:
+        updates.append({
+            "range": f"{gspread.utils.rowcol_to_a1(int(row_num), col_index)}",
+            "values": [["Yes"]]
+        })
+
+    sheet.batch_update(updates)
+    print(f"🟢 Batch updated {len(rows_to_update)} rows")
 def format_pretty_date(date_str):
     """
     Converts 13/10/2025 into 13th October 2025

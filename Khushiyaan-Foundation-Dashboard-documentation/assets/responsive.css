@@ -1,7 +1,7 @@
 
 /* Default for desktop/laptop */
 .login-page {
-background-image: url("/assets/beach_cleanup_bg.jpg");
+background-image: url("/assets/beach_cleanup_bg.jpeg");
 background-size: cover;
 background-position: center;
 background-repeat: no-repeat;
@@ -60,7 +60,7 @@ background-color: #e64a19;
 /* Mobile only */
 @media (max-width: 768px) {
 .login-page {
-background-image: url("/assets/beach_cleanup_bg.jpg");
+background-image: url("/assets/beach_cleanup_bg.jpeg");
 background-size: cover;
 background-position: center;
 }

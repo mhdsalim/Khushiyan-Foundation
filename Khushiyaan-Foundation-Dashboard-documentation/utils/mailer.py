@@ -7,12 +7,20 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-def send_certificate_mail(receiver_email, subject, body, attachments=None):
+def create_smtp_client():
     sender_email = os.getenv("EMAIL_USER")
     password = os.getenv("EMAIL_PASS")
 
-    if not sender_email or not password:
-        raise ValueError("❌ Missing EMAIL_USER or EMAIL_PASS in .env file")
+    context = ssl.create_default_context()
+    client = smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context)
+    client.login(sender_email, password)
+
+    print("🔐 Logged into SMTP once.")
+    return client
+
+
+def send_certificate_mail(smtp_client, receiver_email, subject, body, attachments=None):
+    sender_email = os.getenv("EMAIL_USER")
 
     msg = EmailMessage()
     msg["From"] = sender_email
@@ -20,39 +28,25 @@ def send_certificate_mail(receiver_email, subject, body, attachments=None):
     msg["Subject"] = subject
     msg.set_content(body)
 
-    # Attach files if any
+    # Add attachments
     if attachments:
         for file in attachments:
             with open(file, "rb") as f:
                 file_data = f.read()
-                file_name = os.path.basename(file)
 
-                if file.endswith(".pdf"):
-                    msg.add_attachment(
-                        file_data,
-                        maintype="application",
-                        subtype="pdf",
-                        filename=file_name
-                    )
-                elif file.endswith((".png", ".jpg", ".jpeg")):
-                    msg.add_attachment(
-                        file_data,
-                        maintype="image",
-                        subtype=file.split(".")[-1],
-                        filename=file_name
-                    )
-                else:
-                    msg.add_attachment(
-                        file_data,
-                        maintype="application",
-                        subtype="octet-stream",
-                        filename=file_name
-                    )  # fallback for other files
+            file_name = os.path.basename(file)
+            ext = file.split(".")[-1].lower()
 
-    # Send email securely
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-        server.login(sender_email, password)
-        server.send_message(msg)
+            msg.add_attachment(
+                file_data,
+                maintype="application" if ext == "pdf" else "image",
+                subtype=ext,
+                filename=file_name
+            )
 
+    # Use the SAME smtp client for all mails
+    smtp_client.send_message(msg)
     print(f"✅ Mail sent to {receiver_email}")
+    return ""
+
+    

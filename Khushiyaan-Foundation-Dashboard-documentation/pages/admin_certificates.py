@@ -92,6 +92,7 @@ def send_certificates(n_clicks):
                     attachments=[cert_path]
                 )
                 update_sheet("Khushiyan Foundation (Responses)",row.index)
+                print("Updated Sheet00000")
                 print(f"✅ Sent to {name} ({email}) [{i+1}/{total}]")
 
             return f"🎉 All {total} certificates sent successfully!"
