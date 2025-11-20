@@ -799,7 +799,7 @@ def send_all_certificates(n_clicks):
                 return None
 
         # -------- PARALLEL EXECUTION --------
-        max_workers = 6  # adjust based on CPU / Gmail limits
+        max_workers = 1  # adjust based on CPU / Gmail limits
 
         # Create one SMTP client per worker
         smtp_clients = [create_smtp_client() for _ in range(max_workers)]
