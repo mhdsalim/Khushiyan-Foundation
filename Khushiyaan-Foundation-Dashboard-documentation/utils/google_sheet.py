@@ -17,7 +17,7 @@ def fetch_form_responses(sheet_name):
     ]
 
     # Authorize the client
-    creds = ServiceAccountCredentials.from_json_keyfile_name("/etc/secrets/credentials.json", scope)
+    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     client = gspread.authorize(creds)
 
     # Open the sheet by name
