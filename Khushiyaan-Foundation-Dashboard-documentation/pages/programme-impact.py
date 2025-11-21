@@ -14,7 +14,7 @@ from flask_login import current_user, logout_user  # Added Flask-Login imports
 import plotly.io as pio
 from utils.google_sheet import fetch_form_responses,format_pretty_date,update_sheet
 from utils.certificate_generator import generate_certificate
-from utils.mailer import send_certificate_mail,create_smtp_client
+from utils.mailer import send_certificate_mail
 import time
 
 # 🎨 Khushiyaan Foundation Brand Palette
@@ -747,7 +747,7 @@ def send_all_certificates(n_clicks):
         rows_to_update = []
         
         # -------- FUNCTION FOR EACH USER --------
-        def process_user(row,smtp_client):
+        def process_user(row):
             try:
                 user_start = time.perf_counter()
 
@@ -778,7 +778,6 @@ def send_all_certificates(n_clicks):
 
                 # -------- Email sending --------
                 send_certificate_mail(
-                    smtp_client,
                     receiver_email=email,
                     subject=f"Khushiyaan Foundation - {event} Certificate",
                     body=f"Hello {name},\n\nThank you for participating in the {event} Drive on {date}!\nPlease find your certificate attached.\n\nWarm regards,\nKhushiyaan Foundation",
@@ -801,22 +800,12 @@ def send_all_certificates(n_clicks):
         # -------- PARALLEL EXECUTION --------
         max_workers = 1  # adjust based on CPU / Gmail limits
 
-        # Create one SMTP client per worker
-        smtp_clients = [create_smtp_client() for _ in range(max_workers)]
-
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             
             futures = {}
-            client_index = 0  # round-robin pointer
-
-            for _, row in df.iterrows():
-                
-                # pick one SMTP client for this job
-                smtp_client = smtp_clients[client_index]
-                client_index = (client_index + 1) % max_workers
-                
+            for _, row in df.iterrows():      
                 # submit the job with the client
-                future = executor.submit(process_user, row, smtp_client)
+                future = executor.submit(process_user, row)
                 futures[future] = row
 
             # collect results
@@ -824,13 +813,7 @@ def send_all_certificates(n_clicks):
                 result = future.result()
                 if result:
                     rows_to_update.append(result)
-        # close all smtp clients at end
-        for client in smtp_clients:
-            try:
-                client.quit()
-            except:
-                pass
-        print("Reached here")
+
         update_sheet("Khushiyan Foundation (Responses)",rows_to_update)
         # -------- DONE --------
         end_total = time.perf_counter()
