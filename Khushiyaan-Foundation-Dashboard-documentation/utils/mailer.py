@@ -10,7 +10,7 @@ def send_certificate_mail( receiver_email, subject, body, attachments=None):
     """
     Send email using Brevo API but keeps the same signature as the SMTP version.
     """
-
+    html_body = body.replace("\n", "<br>")
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
         "api-key": BREVO_API_KEY,
@@ -22,7 +22,7 @@ def send_certificate_mail( receiver_email, subject, body, attachments=None):
         "sender": {"email": BREVO_SENDER_EMAIL, "name": BREVO_SENDER_NAME},
         "to": [{"email": receiver_email}],
         "subject": subject,
-        "htmlContent": body  # Brevo uses HTML content
+        "htmlContent": html_body  # Brevo uses HTML content
     }
 
     # Handle attachments
