@@ -1,52 +1,49 @@
-import smtplib
-import ssl
-from email.message import EmailMessage
 import os
-from dotenv import load_dotenv
+import requests
+import base64
 
-# Load environment variables
-load_dotenv()
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+BREVO_SENDER_NAME = os.getenv("SENDER_NAME", "")
 
-def create_smtp_client():
-    sender_email = os.getenv("EMAIL_USER")
-    password = os.getenv("EMAIL_PASS")
+def send_certificate_mail( receiver_email, subject, body, attachments=None):
+    """
+    Send email using Brevo API but keeps the same signature as the SMTP version.
+    """
 
-    context = ssl.create_default_context()
-    client = smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context)
-    client.login(sender_email, password)
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "api-key": BREVO_API_KEY,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
 
-    print("🔐 Logged into SMTP once.")
-    return client
+    payload = {
+        "sender": {"email": BREVO_SENDER_EMAIL, "name": BREVO_SENDER_NAME},
+        "to": [{"email": receiver_email}],
+        "subject": subject,
+        "htmlContent": body  # Brevo uses HTML content
+    }
 
-
-def send_certificate_mail(smtp_client, receiver_email, subject, body, attachments=None):
-    sender_email = os.getenv("EMAIL_USER")
-
-    msg = EmailMessage()
-    msg["From"] = sender_email
-    msg["To"] = receiver_email
-    msg["Subject"] = subject
-    msg.set_content(body)
-
-    # Add attachments
+    # Handle attachments
     if attachments:
+        payload["attachment"] = []
         for file in attachments:
             with open(file, "rb") as f:
                 file_data = f.read()
 
-            file_name = os.path.basename(file)
-            ext = file.split(".")[-1].lower()
+            encoded = base64.b64encode(file_data).decode("utf-8")
+            payload["attachment"].append({
+                "content": encoded,
+                "name": os.path.basename(file)
+            })
 
-            msg.add_attachment(
-                file_data,
-                maintype="application" if ext == "pdf" else "image",
-                subtype=ext,
-                filename=file_name
-            )
+    resp = requests.post(url, json=payload, headers=headers)
 
-    # Use the SAME smtp client for all mails
-    smtp_client.send_message(msg)
-    print(f"✅ Mail sent to {receiver_email}")
-    return ""
-
-    
+    try:
+        resp.raise_for_status()
+        print(f"✅ Mail sent to {receiver_email} via Brevo")
+        return ""
+    except Exception as e:
+        print(f"❌ Error sending email to {receiver_email}: {resp.text}")
+        raise e
