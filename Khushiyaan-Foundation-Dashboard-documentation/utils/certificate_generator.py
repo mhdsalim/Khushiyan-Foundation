@@ -11,6 +11,75 @@ import requests
 
 def log(message, start):
     print(f"{message}: {time.perf_counter() - start:.4f} sec")
+def format_title(text):
+    return text.title().strip()
+
+def download_image_from_gdrive(url):
+    """
+    Downloads ANY image from Google Drive — even large files.
+    Returns BytesIO buffer.
+    """
+
+    session = requests.Session()
+
+    # Extract file ID
+    if "drive.google.com" in url:
+        if "/file/d/" in url:
+            file_id = url.split("/file/d/")[1].split("/")[0]
+        elif "id=" in url:
+            file_id = url.split("id=")[1]
+        else:
+            raise ValueError("Invalid Google Drive link")
+
+        download_url = "https://drive.google.com/uc?export=download"
+        response = session.get(download_url, params={"id": file_id}, stream=True)
+    else:
+        response = session.get(url, stream=True)
+
+    # Google Drive sometimes returns a warning token for large files
+    def get_confirm_token(res):
+        for key, value in res.cookies.items():
+            if key.startswith("download_warning"):
+                return value
+        return None
+
+    token = get_confirm_token(response)
+
+    if token:
+        params = {"id": file_id, "confirm": token}
+        response = session.get(download_url, params=params, stream=True)
+
+    # Ensure we got an image, not HTML
+    content_type = response.headers.get("Content-Type", "")
+    if "image" not in content_type:
+        raise ValueError("Google Drive did not return an image. Check sharing permissions.")
+
+    buffer = io.BytesIO(response.content)
+    buffer.seek(0)
+    return buffer
+
+def universal_to_jpg(input_data, quality=35, max_width=475, max_height=300):
+
+    # Input can be path OR a BytesIO buffer
+    if isinstance(input_data, io.BytesIO):
+        img = Image.open(input_data)
+    else:
+        img = Image.open(str(input_data))
+
+    img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+
+    if img.mode in ("RGBA", "LA"):
+        bg = Image.new("RGB", img.size, (255, 255, 255))
+        bg.paste(img, mask=img.split()[-1])
+        img = bg
+    else:
+        img = img.convert("RGB")
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="JPEG", quality=quality, optimize=True)
+    buffer.seek(0)
+    return buffer
+
 
 def generate_certificate(
     name,
