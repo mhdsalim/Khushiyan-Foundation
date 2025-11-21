@@ -15,6 +15,7 @@ import plotly.io as pio
 from utils.google_sheet import fetch_form_responses,format_pretty_date,update_sheet
 from utils.certificate_generator import generate_certificate
 from utils.mailer import send_certificate_mail
+
 import time
 
 # 🎨 Khushiyaan Foundation Brand Palette
@@ -737,7 +738,7 @@ def send_all_certificates(n_clicks):
 
     try:
         start_total = time.perf_counter()
-
+        
         df = fetch_form_responses("Khushiyan Foundation (Responses)")
         total = df.shape[0]
 
@@ -770,7 +771,7 @@ def send_all_certificates(n_clicks):
                     location=location,
                     date=date,
                     sponsor=sponsor,
-                    template_path="assets/Legrand template.pdf",
+                    template_path="assets/base_template.pdf",
                     output_path=cert_path,
                     photo_path=photo_path
                 )
