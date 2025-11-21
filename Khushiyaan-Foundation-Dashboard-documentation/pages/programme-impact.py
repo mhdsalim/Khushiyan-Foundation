@@ -798,7 +798,7 @@ def send_all_certificates(n_clicks):
                 return None
 
         # -------- PARALLEL EXECUTION --------
-        max_workers = 1  # adjust based on CPU / Gmail limits
+        max_workers = 2  # adjust based on CPU / Gmail limits
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             
