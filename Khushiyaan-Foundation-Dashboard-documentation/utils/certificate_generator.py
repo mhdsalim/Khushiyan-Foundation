@@ -110,34 +110,14 @@ def generate_certificate(
     pdfmetrics.registerFont(TTFont("Josefin", "assets/JosefinSans-Regular.ttf"))
 
     pdfmetrics.registerFont(TTFont("JosefinSans", "assets/JosefinSans-Light.ttf"))
-    # ----- PREPARE LOGOS -----
-    logo_left_path = "assets/Khushiyaan Logo.jpg"
-    legrand_jpg = "assets/Logo_Legrand_SA.jpg"  # if this is SVG, convert it
 
 
-
-    # Load with ImageReader
-    left_logo = ImageReader(logo_left_path)
-    right_logo = ImageReader(legrand_jpg)
 
     # ----- DRAW OVERLAY -----
     temp_pdf = "overlay.pdf"
     c = canvas.Canvas(temp_pdf)
 
-    # ----- PLACE LOGOS -----
-    # Standard width for BOTH logos
-    # ----- PLACE LOGOS -----
-    LOGO_WIDTH = 180
-    TOP_Y = 705
-    GAP = 1   # spacing between the two logos
 
-    # Khushiyaan logo – TOP
-    c.drawImage(left_logo, 8, TOP_Y, width=LOGO_WIDTH, preserveAspectRatio=True, mask='auto')
-
-    # Legrand logo – BELOW it
-    second_logo_y = TOP_Y - 300 
-    if sponsor:  # dynamic height calc
-        c.drawImage(right_logo, 8, second_logo_y, width=LOGO_WIDTH, preserveAspectRatio=True, mask='auto')
 
     # ----- TEXT PLACEMENT -----
     PAGE_WIDTH = 595.5
@@ -204,9 +184,7 @@ def generate_certificate(
         c.restoreState()
     except:
         pass
-
-
-
+        
     c.save()
 
     # ----- MERGE WITH TEMPLATE -----
