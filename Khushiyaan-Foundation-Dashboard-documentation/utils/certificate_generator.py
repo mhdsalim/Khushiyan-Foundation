@@ -98,19 +98,19 @@ def generate_certificate(
     # -------------------------------------------------
     # 1️⃣ DOWNLOAD/PROCESS IMG
     # -------------------------------------------------
-    t = time.perf_counter()
+    # t = time.perf_counter()
     
-    if photo_path.startswith("http"):
-        raw_img = download_image_from_gdrive(photo_path)
-        log("Download image", t)
+    # if photo_path.startswith("http"):
+    #     raw_img = download_image_from_gdrive(photo_path)
+    #     log("Download image", t)
 
-        t = time.perf_counter()
-        user_photo = universal_to_jpg(raw_img)
-        log("Convert to JPG", t)
-    else:
-        t = time.perf_counter()
-        user_photo = universal_to_jpg(photo_path)
-        log("Convert local image to JPG", t)
+    #     t = time.perf_counter()
+    #     user_photo = universal_to_jpg(raw_img)
+    #     log("Convert to JPG", t)
+    # else:
+    #     t = time.perf_counter()
+    #     user_photo = universal_to_jpg(photo_path)
+    #     log("Convert local image to JPG", t)
 
     # -------------------------------------------------
     # 2️⃣ REGISTER FONTS
@@ -176,32 +176,32 @@ def generate_certificate(
     # -------------------------------------------------
     # 4️⃣ DRAW FADED CENTER PHOTO
     # -------------------------------------------------
-    img_start = time.perf_counter()
-    user_photo_reader = ImageReader(user_photo)
-    width, height = user_photo_reader.getSize()
+    # img_start = time.perf_counter()
+    # user_photo_reader = ImageReader(user_photo)
+    # width, height = user_photo_reader.getSize()
 
-    try:
-        c.saveState()
-        c.setFillAlpha(0.18)
-    except:
-        pass
+    # try:
+    #     c.saveState()
+    #     c.setFillAlpha(0.18)
+    # except:
+    #     pass
 
-    c.drawImage(
-        user_photo_reader,
-        (PAGE_WIDTH - width)/2,
-        210,
-        height=300,
-        preserveAspectRatio=True,
-        mask='auto'
-    )
+    # c.drawImage(
+    #     user_photo_reader,
+    #     (PAGE_WIDTH - width)/2,
+    #     210,
+    #     height=300,
+    #     preserveAspectRatio=True,
+    #     mask='auto'
+    # )
 
-    try: c.restoreState()
-    except: pass
+    # try: c.restoreState()
+    # except: pass
 
-    log("Draw faded photo", img_start)
+    # log("Draw faded photo", img_start)
 
     c.save()
-    log("Draw text + photo (whole block)", t)
+    log("Draw text", t)
 
     # -------------------------------------------------
     # 5️⃣ MERGE WITH TEMPLATE
