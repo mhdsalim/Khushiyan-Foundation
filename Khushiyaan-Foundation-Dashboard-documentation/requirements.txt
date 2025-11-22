@@ -13,3 +13,4 @@ Pillow
 reportlab
 PyPDF2
 httpx
+APScheduler
