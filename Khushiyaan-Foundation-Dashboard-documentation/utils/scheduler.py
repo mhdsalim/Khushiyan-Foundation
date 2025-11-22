@@ -16,7 +16,7 @@ def start_scheduler():
         run_cert_job,
         trigger="cron",
         hour=13,
-        minute=30,
+        minute=38,
         id="send_certificates_job",
         replace_existing=True,
     )
