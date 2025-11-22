@@ -8,9 +8,10 @@ from PIL import Image
 import os
 import io
 import requests
-
+DEBUG_LOG = False
 def log(message, start):
-    print(f"{message}: {time.perf_counter() - start:.4f} sec")
+    if DEBUG_LOG:
+        print(f"{message}: {time.perf_counter() - start:.4f} sec")
 def format_title(text):
     return text.title().strip()
 
@@ -93,7 +94,6 @@ def generate_certificate(
 ):
 
     total_start = time.perf_counter()
-    print("\n===== GENERATING CERTIFICATE =====")
 
     # -------------------------------------------------
     # 1️⃣ DOWNLOAD/PROCESS IMG
