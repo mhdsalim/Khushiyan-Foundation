@@ -17,6 +17,27 @@ app = dash.Dash(
 )
 
 server = app.server
+@server.route("/trigger-certificates", methods=["POST"])
+def trigger_certificates():
+    data = request.json or {}
+
+    # Security check
+    if data.get("secret") != os.getenv("WEBHOOK_SECRET"):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    row_values = data.get("values")  # ["Salim", "salim@gmail.com", "Cleanup", "2025-10-13"]
+
+    if not row_values:
+        return jsonify({"error": "Missing row data"}), 400
+
+    # Example: Extract fields
+    name, event,date_str ,location, sponsor, photo_path, email = row_values[1:8]
+    row  = data.get("row")
+
+    # Generate + send certificate for this one row
+    status = send_single_certificate(name, email,event,date_str ,location, sponsor, photo_path,row)
+
+    return jsonify({"status": "ok", "sent_to": email, "result": status})
 
 # IMPORTANT: Set secret key for Flask sessions
 server.secret_key = os.getenv("SECRET_KEY", os.urandom(24))
