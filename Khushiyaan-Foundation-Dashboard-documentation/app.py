@@ -4,6 +4,7 @@ from dash import html, dcc
 import dash_bootstrap_components as dbc
 from auth import login_manager 
 from dotenv import load_dotenv
+from utils.scheduler import start_scheduler
 load_dotenv()  # import shared login_manager
 # Dash app
 app = dash.Dash(
@@ -64,6 +65,7 @@ app.clientside_callback(
     dash.Output("screen-width", "data"),
     dash.Input("interval", "n_intervals")
 )
+start_scheduler()
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))
     app.run(host="0.0.0.0", port=port, debug=False)
